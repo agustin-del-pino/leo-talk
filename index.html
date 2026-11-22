@@ -54,6 +54,111 @@
       background: #3a3a3a;
     }
 
+    .settings-btn {
+      font-size: 1.2rem;
+    }
+
+    body.delete-mode .settings-btn {
+      visibility: hidden;
+    }
+
+    /* Configuración */
+    .settings {
+      width: min(440px, calc(100vw - 32px));
+      max-height: calc(100vh - 32px);
+      overflow-y: auto;
+    }
+
+    .settings h3 {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #888;
+      margin: 20px 0 10px;
+    }
+
+    .settings h3:first-of-type {
+      margin-top: 0;
+    }
+
+    .setting {
+      margin-bottom: 16px;
+    }
+
+    .setting-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+      margin-bottom: 6px;
+    }
+
+    .setting-head output {
+      color: #8fb0f0;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .setting-hint {
+      color: #888;
+      font-size: 0.85rem;
+      margin-top: 4px;
+    }
+
+    .setting input[type="range"] {
+      width: 100%;
+      accent-color: #3b6fd8;
+      height: 28px;
+    }
+
+    .setting select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #444;
+      border-radius: 8px;
+      background: #121212;
+      color: #eee;
+      font-size: 1rem;
+    }
+
+    .setting-toggle {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+    }
+
+    .setting-toggle input {
+      width: 22px;
+      height: 22px;
+      accent-color: #3b6fd8;
+    }
+
+    .segmented {
+      display: flex;
+      gap: 6px;
+    }
+
+    .segmented button {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      background: #2f2f2f;
+      color: #eee;
+      font-size: 0.95rem;
+      cursor: pointer;
+    }
+
+    .segmented button[aria-pressed="true"] {
+      background: #3b6fd8;
+    }
+
+    .settings .modal-options {
+      margin-top: 8px;
+    }
+
     .modal {
       margin: auto;
       border: none;
@@ -157,6 +262,89 @@
       transform: translate(-50%, 0);
     }
 
+    .form-error {
+      color: #ff6b6b;
+      font-size: 0.95rem;
+      margin: -4px 0 12px;
+    }
+
+    .form-error:empty {
+      display: none;
+    }
+
+    .modal-options button:disabled {
+      opacity: 0.6;
+      cursor: wait;
+    }
+
+    .modal-options .danger {
+      color: #ff6b6b;
+    }
+
+    /* Modo eliminar */
+    .delete-actions {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      display: none;
+      gap: 10px;
+    }
+
+    body.delete-mode .delete-actions {
+      display: flex;
+    }
+
+    .delete-actions button {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+    }
+
+    .delete-save {
+      background: #d64545;
+    }
+
+    .delete-save:hover {
+      background: #e25555;
+    }
+
+    .delete-cancel {
+      background: #2f2f2f;
+    }
+
+    .delete-cancel:hover {
+      background: #3d3d3d;
+    }
+
+    body.delete-mode .add-btn {
+      visibility: hidden;
+    }
+
+    body.delete-mode .tile {
+      outline: 3px solid #d64545;
+      outline-offset: -3px;
+    }
+
+    body.delete-mode .tile::after {
+      content: "✕";
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #d64545;
+      color: #fff;
+      font-size: 1.1rem;
+      line-height: 32px;
+      text-align: center;
+    }
+
     .countdown {
       position: fixed;
       top: 16px;
@@ -183,8 +371,18 @@
 
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(var(--tile-size, 140px), 1fr));
       gap: 12px;
+    }
+
+    /* Mensaje cuando todavía no hay imágenes */
+    .grid:empty::before {
+      content: "Todavía no hay imágenes. Tocá + para agregar la primera.";
+      grid-column: 1 / -1;
+      padding: 48px 16px;
+      text-align: center;
+      color: #888;
+      font-size: 1.1rem;
     }
 
     .tile {
@@ -207,6 +405,10 @@
 
     .tile:active {
       transform: scale(0.97);
+    }
+
+    body.hide-labels .tile-label {
+      display: none;
     }
 
     .tile-label {
@@ -233,6 +435,7 @@
   <header>
     <h1>Leo Talk</h1>
     <button id="add-btn" class="add-btn" aria-label="Agregar">+</button>
+    <button id="settings-btn" class="add-btn settings-btn" aria-label="Configuración">⚙</button>
   </header>
 
   <main id="grid" class="grid"></main>
@@ -240,12 +443,29 @@
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <div id="countdown" class="countdown" aria-hidden="true"></div>
 
+  <div class="delete-actions">
+    <button id="delete-cancel" class="delete-cancel">Cancelar</button>
+    <button id="delete-save" class="delete-save">Guardar</button>
+  </div>
+
   <dialog id="add-modal" class="modal">
-    <h2>Nueva imagen</h2>
+    <h2>Opciones</h2>
     <div class="modal-options">
       <button id="opt-add">Agregar</button>
       <button id="opt-camera">Cámara</button>
+      <button id="opt-link">Link</button>
+      <button id="opt-delete" class="danger">Eliminar</button>
       <button id="opt-cancel" class="cancel">Cancelar</button>
+    </div>
+  </dialog>
+
+  <dialog id="url-modal" class="modal">
+    <h2>Imagen desde un link</h2>
+    <input id="url-input" class="word-input" type="url" placeholder="https://..." autocomplete="off">
+    <p id="url-error" class="form-error"></p>
+    <div class="modal-options">
+      <button id="url-next" class="primary">Siguiente</button>
+      <button id="url-cancel" class="cancel">Cancelar</button>
     </div>
   </dialog>
 
@@ -259,60 +479,213 @@
     </div>
   </dialog>
 
+  <dialog id="settings-modal" class="modal settings">
+    <h2>Configuración</h2>
+
+    <h3>Voz</h3>
+    <div class="setting">
+      <div class="setting-head">
+        <label for="set-delay">Espera antes de leer</label>
+        <output id="out-delay"></output>
+      </div>
+      <input id="set-delay" type="range" min="1" max="10" step="0.5">
+      <p class="setting-hint">Tiempo sin tocar imágenes hasta que se lee la oración.</p>
+    </div>
+
+    <div class="setting">
+      <div class="setting-head">
+        <label for="set-rate">Velocidad de lectura</label>
+        <output id="out-rate"></output>
+      </div>
+      <input id="set-rate" type="range" min="0.5" max="2" step="0.1">
+      <p class="setting-hint">Cuánto tarda en decirse la oración: menos es más lento.</p>
+    </div>
+
+    <div class="setting">
+      <div class="setting-head">
+        <label for="set-pitch">Tono</label>
+        <output id="out-pitch"></output>
+      </div>
+      <input id="set-pitch" type="range" min="0.5" max="2" step="0.1">
+    </div>
+
+    <div class="setting">
+      <div class="setting-head">
+        <label for="set-voice">Voz</label>
+      </div>
+      <select id="set-voice"></select>
+    </div>
+
+    <div class="setting modal-options">
+      <button id="set-test">▶ Probar voz</button>
+    </div>
+
+    <h3>Pantalla</h3>
+    <div class="setting">
+      <div class="setting-head"><span>Tamaño de las imágenes</span></div>
+      <div id="set-size" class="segmented">
+        <button data-value="small">Chicas</button>
+        <button data-value="medium">Medianas</button>
+        <button data-value="large">Grandes</button>
+      </div>
+    </div>
+
+    <div class="setting">
+      <label class="setting-toggle">
+        <span>Mostrar la palabra debajo de cada imagen</span>
+        <input id="set-labels" type="checkbox">
+      </label>
+    </div>
+
+    <h3>Datos de uso</h3>
+    <div class="setting modal-options">
+      <button id="set-download">Descargar datos</button>
+      <button id="set-share">Enviar por Bluetooth</button>
+    </div>
+    <p class="setting-hint">Historial por hora de cuántas veces se usó cada imagen (leo-talk-data.json). Para enviar: elegí "Bluetooth" o "Quick Share" en el menú de compartir y después el equipo destino.</p>
+
+    <h3>Copia de seguridad</h3>
+    <div class="setting modal-options">
+      <button id="set-backup">Exportar imágenes</button>
+      <button id="set-import">Importar imágenes</button>
+    </div>
+    <p class="setting-hint">Guarda todas las imágenes con sus palabras para restaurarlas o pasarlas a otra tablet.</p>
+
+    <h3>Imágenes</h3>
+    <div class="setting modal-options">
+      <button id="set-reset-weight">Reiniciar orden por uso</button>
+      <button id="set-delete-all" class="danger">Eliminar todas las imágenes</button>
+    </div>
+
+    <div class="modal-options">
+      <button id="settings-close" class="primary">Listo</button>
+    </div>
+  </dialog>
+
+  <input id="file-backup" class="hidden-input" type="file" accept="application/json,.json,text/plain,.txt">
+
   <!-- Inputs ocultos: en tablet, "capture" abre directo la cámara -->
   <input id="file-gallery" class="hidden-input" type="file" accept="image/*">
   <input id="file-camera" class="hidden-input" type="file" accept="image/*" capture="environment">
 
   <script>
-    // Mapa imagen -> valor. "image" es un color (placeholder) o un data URL de una imagen real.
-    const TILE_COUNT = 12;
+    // Mapa imagen -> valor. "image" es el Blob de la imagen agregada por el usuario.
     const MAX_IMAGE_SIZE = 512; // px, lado mayor; achica las fotos de la cámara
 
-    function randomColor() {
-      const hue = Math.floor(Math.random() * 360);
-      return `hsl(${hue}, 70%, 60%)`;
-    }
-
-    // Guarda en IndexedDB las imágenes agregadas por el usuario ({ id, image: Blob, value })
+    // IndexedDB "leo-talk":
+    //  - images:    { id, image: Blob | string, value, weight, createDate }  (clave: id)
+    //  - snapshots: { date, images: { [value]: { weight, createDate } }, sentences: [{ text, date }] }
+    //               (clave: hora "YYYY-MM-DDTHH"; sentences de la más nueva a la más vieja)
     class ImageStore {
       static DB_NAME = "leo-talk";
-      static STORE = "images";
+      static VERSION = 2;
+      static IMAGES = "images";
+      static SNAPSHOTS = "snapshots";
 
       constructor() {
         this.db = new Promise((resolve, reject) => {
-          const req = indexedDB.open(ImageStore.DB_NAME, 1);
-          req.onupgradeneeded = () => req.result.createObjectStore(ImageStore.STORE, { keyPath: "id" });
-          req.onsuccess = () => resolve(req.result);
+          const req = indexedDB.open(ImageStore.DB_NAME, ImageStore.VERSION);
+          // Se ejecuta al crear la base o al pasar de una versión anterior: crea solo lo que falta
+          req.onupgradeneeded = () => {
+            const db = req.result;
+            if (!db.objectStoreNames.contains(ImageStore.IMAGES)) {
+              db.createObjectStore(ImageStore.IMAGES, { keyPath: "id" });
+            }
+            if (!db.objectStoreNames.contains(ImageStore.SNAPSHOTS)) {
+              db.createObjectStore(ImageStore.SNAPSHOTS); // clave externa: la hora
+            }
+          };
+          req.onsuccess = () => {
+            // Si otra pestaña abre una versión más nueva, se cierra esta conexión para no bloquearla
+            req.result.onversionchange = () => req.result.close();
+            resolve(req.result);
+          };
           req.onerror = () => reject(req.error);
         });
       }
 
-      async request(mode, fn) {
+      async request(storeName, mode, fn) {
         const db = await this.db;
         return new Promise((resolve, reject) => {
-          const req = fn(db.transaction(ImageStore.STORE, mode).objectStore(ImageStore.STORE));
+          const req = fn(db.transaction(storeName, mode).objectStore(storeName));
           req.onsuccess = () => resolve(req.result);
           req.onerror = () => reject(req.error);
         });
       }
 
       getAll() {
-        return this.request("readonly", (store) => store.getAll());
+        return this.request(ImageStore.IMAGES, "readonly", (store) => store.getAll());
       }
 
       put(record) {
-        return this.request("readwrite", (store) => store.put(record));
+        return this.request(ImageStore.IMAGES, "readwrite", (store) => store.put(record));
+      }
+
+      clear() {
+        return this.request(ImageStore.IMAGES, "readwrite", (store) => store.clear());
+      }
+
+      // Borra varias imágenes en una sola transacción
+      deleteMany(ids) {
+        return this.transaction((store) => ids.forEach((id) => store.delete(id)));
+      }
+
+      // Guarda varias imágenes en una sola transacción
+      putMany(records) {
+        return this.transaction((store) => records.forEach((record) => store.put(record)));
+      }
+
+      async transaction(fn) {
+        const db = await this.db;
+        return new Promise((resolve, reject) => {
+          const tx = db.transaction(ImageStore.IMAGES, "readwrite");
+          fn(tx.objectStore(ImageStore.IMAGES));
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => reject(tx.error);
+        });
+      }
+
+      // Un snapshot por hora. Lee y escribe en la misma transacción, así dos actualizaciones
+      // seguidas (ej. un toque y una oración) no se pisan: update(snapshotAnterior) => snapshotNuevo
+      async updateSnapshot(hour, update) {
+        const db = await this.db;
+        return new Promise((resolve, reject) => {
+          const tx = db.transaction(ImageStore.SNAPSHOTS, "readwrite");
+          const store = tx.objectStore(ImageStore.SNAPSHOTS);
+          const req = store.get(hour);
+          req.onsuccess = () => store.put(update(req.result), hour);
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => reject(tx.error);
+        });
+      }
+
+      getAllSnapshots() {
+        return this.request(ImageStore.SNAPSHOTS, "readonly", (store) => store.getAll());
       }
     }
 
+    const SETTINGS_KEY = "leo-talk-settings";
+    const DEFAULT_SETTINGS = {
+      delay: 3,          // segundos sin tocar imágenes hasta leer la oración
+      rate: 1,           // velocidad de la voz (0.5 lenta – 2 rápida)
+      pitch: 1,          // tono de la voz
+      voiceURI: "",      // "" = elegir automáticamente
+      tileSize: "medium",
+      showLabels: true,
+    };
+    const TILE_SIZES = { small: "110px", medium: "140px", large: "200px" };
+
     class LeoTalk {
       constructor() {
-        this.speakDelay = 3000;
+        this.settings = LeoTalk.loadSettings();
         this.sentence = [];
         this.speakTimer = null;
         this.countdownTimer = null;
         this.speakDeadline = 0;
         this.pendingImage = null;
+        this.deleteMode = false;
+        this.pendingDeletes = [];
+        this.snapshotTimer = null;
 
         this.el = {
           grid: document.getElementById("grid"),
@@ -320,10 +693,22 @@
           countdown: document.getElementById("countdown"),
           addModal: document.getElementById("add-modal"),
           wordModal: document.getElementById("word-modal"),
+          urlModal: document.getElementById("url-modal"),
+          urlInput: document.getElementById("url-input"),
+          urlError: document.getElementById("url-error"),
+          urlNext: document.getElementById("url-next"),
           preview: document.getElementById("preview"),
           wordInput: document.getElementById("word-input"),
           fileGallery: document.getElementById("file-gallery"),
           fileCamera: document.getElementById("file-camera"),
+          fileBackup: document.getElementById("file-backup"),
+          settingsModal: document.getElementById("settings-modal"),
+          setDelay: document.getElementById("set-delay"),
+          setRate: document.getElementById("set-rate"),
+          setPitch: document.getElementById("set-pitch"),
+          setVoice: document.getElementById("set-voice"),
+          setSize: document.getElementById("set-size"),
+          setLabels: document.getElementById("set-labels"),
         };
 
         // Un solo utterance reutilizado para todas las oraciones
@@ -340,44 +725,366 @@
 
         this.images = new Map();
         this.store = new ImageStore();
-        this.loadImages();
         this.loadSavedImages();
+        this.applySettings();
         this.bindEvents();
+        this.bindSettings();
 
         // Pide que el navegador no borre los datos guardados si se queda sin espacio
         navigator.storage?.persist?.();
       }
 
-      loadImages() {
-        for (let i = 1; i <= TILE_COUNT; i++) {
-          this.images.set(`img-${i}`, { image: randomColor(), value: `palabra${i}` });
-        }
+      get speakDelay() {
+        return this.settings.delay * 1000;
       }
 
       async loadSavedImages() {
         try {
           const saved = await this.store.getAll();
-          saved.forEach(({ id, image, value }) => this.images.set(id, { image, value }));
-          if (saved.length) this.render();
+          this.images.forEach((item) => item.url?.startsWith("blob:") && URL.revokeObjectURL(item.url));
+          this.images.clear();
+          saved.forEach(({ id, image, value, weight, createDate }) => this.images.set(id, {
+            image,
+            value,
+            // Registros anteriores a estos campos: weight arranca en 0 y la fecha sale del id ("img-<ms>")
+            weight: weight ?? 0,
+            createDate: createDate ?? LeoTalk.dateFromId(id),
+          }));
+          this.render();
+          this.scheduleSnapshot();
         } catch (err) {
           console.error("No se pudieron cargar las imágenes guardadas", err);
         }
       }
 
-      // Prioriza voces locales: las online (ej. "Google español") van a un servidor y demoran
+      // Registro tal como se guarda en la tabla images
+      static toRecord(id, { image, value, weight, createDate }) {
+        return { id, image, value, weight, createDate };
+      }
+
+      // Fecha local sin zona horaria: "2026-11-22T09:14:30"
+      static localISO(date = new Date()) {
+        const pad = (n) => String(n).padStart(2, "0");
+        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
+          + `T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+      }
+
+      static dateFromId(id) {
+        const ms = Number(String(id).replace("img-", ""));
+        return LeoTalk.localISO(ms > 0 ? new Date(ms) : new Date());
+      }
+
+      // --- Snapshots de pesos ---
+      // Después de cada cambio (con 2 s de margen para agrupar toques seguidos) se guarda el estado
+      // actual en el snapshot de la hora en curso. Queda uno por hora: el último estado de esa hora.
+
+      scheduleSnapshot() {
+        clearTimeout(this.snapshotTimer);
+        this.snapshotTimer = setTimeout(() => this.takeSnapshot(), 2000);
+      }
+
+      async takeSnapshot() {
+        if (!this.images.size) return;
+        await this.writeSnapshot();
+      }
+
+      // Guarda una oración leída en el snapshot de su hora (la más nueva queda primera)
+      recordSentence(text) {
+        this.writeSnapshot({ text, date: LeoTalk.localISO() });
+      }
+
+      // Escribe el estado actual en el snapshot de la hora en curso.
+      // Los pesos se reemplazan por los actuales; las oraciones se acumulan.
+      async writeSnapshot(newSentence = null) {
+        const date = LeoTalk.localISO();
+        const images = this.summarizeImages();
+        try {
+          await this.store.updateSnapshot(date.slice(0, 13), (prev) => {
+            const sentences = prev?.sentences ?? [];
+            return { date, images, sentences: newSentence ? [newSentence, ...sentences] : sentences };
+          });
+        } catch (err) {
+          console.error("No se pudo guardar el snapshot", err);
+        }
+      }
+
+      // { [significado]: { weight, createDate } }
+      summarizeImages() {
+        const images = {};
+        this.images.forEach(({ value, weight, createDate }) => {
+          // Si dos imágenes tienen el mismo significado, se suman los usos y queda la fecha más vieja
+          const prev = images[value];
+          images[value] = prev
+            ? { weight: prev.weight + weight, createDate: prev.createDate < createDate ? prev.createDate : createDate }
+            : { weight, createDate };
+        });
+        return images;
+      }
+
+      // Usa la voz elegida en Configuración; si no hay o no existe en este equipo, elige sola.
+      // Prioriza voces locales: las online (ej. "Google español") van a un servidor y demoran.
       selectVoice() {
         const voices = speechSynthesis.getVoices().filter((v) => v.lang.startsWith("es"));
         const score = (v) => (v.localService ? 2 : 0) + (v.lang === "es-AR" ? 1 : 0);
-        const best = voices.sort((a, b) => score(b) - score(a))[0];
-        if (best) this.utterance.voice = best;
+        voices.sort((a, b) => score(b) - score(a));
+        const chosen = voices.find((v) => v.voiceURI === this.settings.voiceURI) || voices[0];
+        if (chosen) this.utterance.voice = chosen;
+        this.renderVoiceOptions(voices);
+      }
+
+      // --- Configuración ---
+
+      static loadSettings() {
+        try {
+          return { ...DEFAULT_SETTINGS, ...JSON.parse(localStorage.getItem(SETTINGS_KEY)) };
+        } catch {
+          return { ...DEFAULT_SETTINGS };
+        }
+      }
+
+      saveSettings() {
+        try {
+          localStorage.setItem(SETTINGS_KEY, JSON.stringify(this.settings));
+        } catch (err) {
+          console.error("No se pudo guardar la configuración", err);
+        }
+      }
+
+      updateSetting(key, value) {
+        this.settings[key] = value;
+        this.saveSettings();
+        this.applySettings();
+      }
+
+      applySettings() {
+        const s = this.settings;
+        this.utterance.rate = s.rate;
+        this.utterance.pitch = s.pitch;
+        document.documentElement.style.setProperty("--tile-size", TILE_SIZES[s.tileSize] ?? TILE_SIZES.medium);
+        document.body.classList.toggle("hide-labels", !s.showLabels);
+      }
+
+      // Refleja la configuración actual en los controles del modal
+      syncSettingsForm() {
+        const { setDelay, setRate, setPitch, setSize, setLabels } = this.el;
+        const s = this.settings;
+        setDelay.value = s.delay;
+        setRate.value = s.rate;
+        setPitch.value = s.pitch;
+        setLabels.checked = s.showLabels;
+        setSize.querySelectorAll("button").forEach((btn) => {
+          btn.setAttribute("aria-pressed", btn.dataset.value === s.tileSize);
+        });
+        this.updateSettingOutputs();
+      }
+
+      updateSettingOutputs() {
+        const s = this.settings;
+        document.getElementById("out-delay").textContent = `${s.delay} s`;
+        document.getElementById("out-rate").textContent = `${s.rate.toFixed(1)}x`;
+        document.getElementById("out-pitch").textContent = s.pitch.toFixed(1);
+      }
+
+      renderVoiceOptions(voices) {
+        const select = this.el.setVoice;
+        const auto = new Option("Automática (recomendada)", "");
+        const options = voices.map((v) => {
+          const kind = v.localService ? "en el equipo" : "online";
+          return new Option(`${v.name} (${v.lang}, ${kind})`, v.voiceURI);
+        });
+        if (!voices.length) auto.text = "No hay voces en español en este equipo";
+        select.replaceChildren(auto, ...options);
+        select.value = voices.some((v) => v.voiceURI === this.settings.voiceURI) ? this.settings.voiceURI : "";
+      }
+
+      bindSettings() {
+        const { settingsModal, setDelay, setRate, setPitch, setVoice, setSize, setLabels, fileBackup } = this.el;
+
+        document.getElementById("settings-btn").addEventListener("click", () => {
+          this.syncSettingsForm();
+          settingsModal.showModal();
+        });
+        document.getElementById("settings-close").addEventListener("click", () => settingsModal.close());
+
+        const onRange = (input, key) => input.addEventListener("input", () => {
+          this.updateSetting(key, Number(input.value));
+          this.updateSettingOutputs();
+        });
+        onRange(setDelay, "delay");
+        onRange(setRate, "rate");
+        onRange(setPitch, "pitch");
+
+        setVoice.addEventListener("change", () => {
+          this.settings.voiceURI = setVoice.value;
+          this.saveSettings();
+          this.selectVoice();
+        });
+
+        document.getElementById("set-test").addEventListener("click", () => {
+          const test = new SpeechSynthesisUtterance("Hola, así suena mi voz");
+          test.lang = this.utterance.lang;
+          test.voice = this.utterance.voice;
+          test.rate = this.utterance.rate;
+          test.pitch = this.utterance.pitch;
+          speechSynthesis.cancel();
+          speechSynthesis.speak(test);
+        });
+
+        setSize.addEventListener("click", (e) => {
+          const btn = e.target.closest("button");
+          if (!btn) return;
+          this.updateSetting("tileSize", btn.dataset.value);
+          this.syncSettingsForm();
+        });
+
+        setLabels.addEventListener("change", () => this.updateSetting("showLabels", setLabels.checked));
+
+        document.getElementById("set-download").addEventListener("click", () => this.downloadData());
+        document.getElementById("set-share").addEventListener("click", () => this.shareData());
+        document.getElementById("set-backup").addEventListener("click", () => this.exportBackup());
+        document.getElementById("set-import").addEventListener("click", () => fileBackup.click());
+        fileBackup.addEventListener("change", (e) => this.importBackup(e));
+        document.getElementById("set-reset-weight").addEventListener("click", () => this.resetWeights());
+        document.getElementById("set-delete-all").addEventListener("click", () => this.deleteAllImages());
+      }
+
+      async deleteAllImages() {
+        const count = this.images.size;
+        if (!count) return alert("No hay imágenes para eliminar.");
+        if (!confirm(`¿Eliminar las ${count} imágenes? Esto no se puede deshacer.`)) return;
+
+        try {
+          await this.store.clear();
+          await this.loadSavedImages();
+        } catch (err) {
+          console.error("No se pudieron eliminar las imágenes", err);
+          alert("No se pudieron eliminar las imágenes. Probá de nuevo.");
+        }
+      }
+
+      async resetWeights() {
+        if (!this.images.size) return;
+        if (!confirm("¿Reiniciar el contador de uso? Las imágenes vuelven al orden en que se agregaron.")) return;
+
+        const records = [...this.images].map(([id, item]) => LeoTalk.toRecord(id, { ...item, weight: 0 }));
+        await this.store.putMany(records);
+        await this.loadSavedImages();
+      }
+
+      // Datos de uso: leo-talk-data.json con los snapshots, del más reciente al más viejo
+      async buildDataJSON() {
+        const snapshoots = await this.store.getAllSnapshots();
+        if (!snapshoots.length) {
+          alert("Todavía no hay datos de uso para descargar.");
+          return null;
+        }
+        snapshoots.sort((a, b) => b.date.localeCompare(a.date));
+        // Los snapshots guardados antes de existir sentences salen con la lista vacía
+        snapshoots.forEach((s) => { s.sentences ??= []; });
+        return JSON.stringify({ snapshoots });
+      }
+
+      async downloadData() {
+        const json = await this.buildDataJSON();
+        if (json) LeoTalk.downloadFile(new File([json], "leo-talk-data.json", { type: "application/json" }));
+      }
+
+      // Abre el menú Compartir del sistema con el archivo adjunto; ahí se elige Bluetooth.
+      // Una web no puede mandar archivos por Bluetooth directamente.
+      async shareData() {
+        const json = await this.buildDataJSON();
+        if (!json) return;
+
+        // Chrome en Android no deja compartir .json desde una web: si lo rechaza, va el mismo contenido como .txt
+        const file = [
+          new File([json], "leo-talk-data.json", { type: "application/json" }),
+          new File([json], "leo-talk-data.txt", { type: "text/plain" }),
+        ].find((f) => navigator.canShare?.({ files: [f] }));
+
+        if (!file) {
+          alert("Este navegador no permite compartir archivos. Se va a descargar para que lo envíes a mano.");
+          LeoTalk.downloadFile(new File([json], "leo-talk-data.json", { type: "application/json" }));
+          return;
+        }
+
+        try {
+          await navigator.share({ files: [file], title: "Datos de Leo Talk" });
+        } catch (err) {
+          // AbortError = el usuario cerró el menú sin elegir nada
+          if (err.name !== "AbortError") {
+            console.error("No se pudo compartir", err);
+            alert("No se pudo compartir el archivo.");
+          }
+        }
+      }
+
+      static downloadFile(file) {
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(file);
+        link.download = file.name;
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+      }
+
+      // Copia de seguridad de las imágenes (los Blob van como data URL), para restaurar o pasar a otra tablet
+      async exportBackup() {
+        if (!this.images.size) return alert("No hay imágenes para exportar.");
+
+        const images = await Promise.all([...this.images].map(async ([id, item]) => ({
+          ...LeoTalk.toRecord(id, item),
+          image: item.image instanceof Blob ? await LeoTalk.blobToDataURL(item.image) : item.image,
+        })));
+        const backup = { app: "leo-talk", version: 1, exportedAt: LeoTalk.localISO(), images };
+        // .txt: es el formato que Chrome deja compartir y que se importa sin problemas
+        const name = `leo-talk-imagenes-${LeoTalk.localISO().slice(0, 10)}.txt`;
+        LeoTalk.downloadFile(new File([JSON.stringify(backup)], name, { type: "text/plain" }));
+      }
+
+      // Suma las imágenes de la copia a las actuales (si un id ya existe, se reemplaza)
+      async importBackup(e) {
+        const file = e.target.files[0];
+        e.target.value = "";
+        if (!file) return;
+
+        try {
+          const backup = JSON.parse(await file.text());
+          if (backup.app !== "leo-talk" || !Array.isArray(backup.images)) throw new Error("Formato inválido");
+
+          const records = await Promise.all(backup.images.map(async (r) => ({
+            id: String(r.id),
+            value: String(r.value),
+            weight: Number(r.weight) || 0,
+            createDate: r.createDate ?? LeoTalk.dateFromId(r.id),
+            // data URL -> Blob; los links externos quedan como string
+            image: r.image.startsWith("data:") ? await (await fetch(r.image)).blob() : r.image,
+          })));
+
+          await this.store.putMany(records);
+          await this.loadSavedImages();
+          alert(`Se importaron ${records.length} imágenes.`);
+        } catch (err) {
+          console.error("No se pudo importar la copia", err);
+          alert("El archivo no es una copia de seguridad válida de Leo Talk.");
+        }
+      }
+
+      static blobToDataURL(blob) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = () => reject(reader.error);
+          reader.readAsDataURL(blob);
+        });
       }
 
       bindEvents() {
-        const { grid, addModal, wordModal, wordInput, fileGallery, fileCamera } = this.el;
+        const { grid, addModal, wordModal, wordInput, fileGallery, fileCamera, urlModal, urlInput } = this.el;
 
         grid.addEventListener("click", (e) => {
           const tile = e.target.closest(".tile");
-          if (tile) this.selectTile(tile.dataset.id);
+          if (!tile) return;
+          if (this.deleteMode) this.markForDelete(tile);
+          else this.selectTile(tile.dataset.id);
         });
 
         // Primer toque: "despierta" el motor de voz con una frase muda.
@@ -400,6 +1107,28 @@
           fileCamera.click();
         });
 
+        document.getElementById("opt-link").addEventListener("click", () => {
+          addModal.close();
+          urlInput.value = "";
+          this.el.urlError.textContent = "";
+          urlModal.showModal();
+          urlInput.focus();
+        });
+
+        this.el.urlNext.addEventListener("click", () => this.handleUrl());
+        urlInput.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") this.handleUrl();
+        });
+        document.getElementById("url-cancel").addEventListener("click", () => urlModal.close());
+
+        document.getElementById("opt-delete").addEventListener("click", () => {
+          addModal.close();
+          this.enterDeleteMode();
+        });
+
+        document.getElementById("delete-save").addEventListener("click", () => this.saveDeletes());
+        document.getElementById("delete-cancel").addEventListener("click", () => this.cancelDeletes());
+
         document.getElementById("opt-cancel").addEventListener("click", () => addModal.close());
 
         fileGallery.addEventListener("change", (e) => this.handleFile(e));
@@ -416,17 +1145,81 @@
         });
 
         // Cerrar al hacer click fuera del modal
-        [addModal, wordModal].forEach((modal) => {
+        [addModal, wordModal, urlModal, this.el.settingsModal].forEach((modal) => {
           modal.addEventListener("click", (e) => {
             if (e.target === modal) modal.close();
           });
         });
       }
 
+      // --- Modo eliminar ---
+      // Optimista: la casilla desaparece al tocarla y el id se encola;
+      // recién al tocar Guardar se borra de la base.
+
+      enterDeleteMode() {
+        // Descarta la oración que se estuviera armando
+        clearTimeout(this.speakTimer);
+        this.stopCountdown();
+        this.sentence = [];
+        this.hideToast();
+
+        this.deleteMode = true;
+        this.pendingDeletes = [];
+        document.body.classList.add("delete-mode");
+      }
+
+      markForDelete(tile) {
+        this.pendingDeletes.push(tile.dataset.id);
+        tile.remove();
+      }
+
+      exitDeleteMode() {
+        const ids = this.pendingDeletes;
+        this.deleteMode = false;
+        this.pendingDeletes = [];
+        document.body.classList.remove("delete-mode");
+        return ids;
+      }
+
+      // Las imágenes nunca salieron del mapa: alcanza con volver a dibujar la grilla
+      cancelDeletes() {
+        const ids = this.exitDeleteMode();
+        if (ids.length) this.render();
+      }
+
+      async saveDeletes() {
+        const ids = this.exitDeleteMode();
+        if (!ids.length) return;
+
+        try {
+          await this.store.deleteMany(ids);
+          ids.forEach((id) => {
+            const item = this.images.get(id);
+            if (item?.url?.startsWith("blob:")) URL.revokeObjectURL(item.url);
+            this.images.delete(id);
+          });
+          this.scheduleSnapshot();
+        } catch (err) {
+          // Si falla, las imágenes siguen en el mapa: se vuelven a mostrar
+          console.error("No se pudieron eliminar las imágenes", err);
+          alert("No se pudieron eliminar las imágenes. Probá de nuevo.");
+          this.render();
+        }
+      }
+
       // --- Oración ---
 
       selectTile(id) {
-        this.sentence.push(this.images.get(id).value);
+        const item = this.images.get(id);
+        this.sentence.push(item.value);
+
+        // Cuenta el uso para ordenar la grilla. No se reordena en el momento:
+        // mover las casillas mientras se arma la oración confunde; el orden nuevo se ve al abrir la app.
+        item.weight++;
+        this.store.put(LeoTalk.toRecord(id, item))
+          .catch((err) => console.error("No se pudo guardar el uso de la imagen", err));
+        this.scheduleSnapshot();
+
         this.showToast(this.sentence.join(" "));
 
         clearTimeout(this.speakTimer);
@@ -440,6 +1233,7 @@
         this.sentence = [];
         if (!text) return;
 
+        this.recordSentence(text);
         this.utterance.text = text;
         // cancel() seguido de speak() puede meter una pausa en Chrome: solo si hay algo sonando
         if (speechSynthesis.speaking || speechSynthesis.pending) speechSynthesis.cancel();
@@ -482,13 +1276,10 @@
         const tile = document.createElement("button");
         tile.className = "tile";
         tile.dataset.id = id;
-        if (item.image instanceof Blob) {
-          // Se crea una sola vez por imagen y se reutiliza en cada render
-          item.url ??= URL.createObjectURL(item.image);
-          tile.style.backgroundImage = `url(${item.url})`;
-        } else {
-          tile.style.backgroundColor = item.image;
-        }
+        // "image" es un Blob (imagen guardada) o un string (link externo).
+        // La URL del Blob se crea una sola vez por imagen y se reutiliza en cada render.
+        item.url ??= item.image instanceof Blob ? URL.createObjectURL(item.image) : item.image;
+        tile.style.backgroundImage = `url(${JSON.stringify(item.url)})`;
         tile.setAttribute("aria-label", item.value);
 
         const label = document.createElement("span");
@@ -502,7 +1293,10 @@
       render() {
         // Se arma fuera del DOM y se inserta de una sola vez
         const fragment = document.createDocumentFragment();
-        this.images.forEach((item, id) => fragment.appendChild(this.createTile(id, item)));
+        // Las más usadas primero; a igual weight se mantiene el orden en que se agregaron (sort estable)
+        [...this.images]
+          .sort(([, a], [, b]) => b.weight - a.weight)
+          .forEach(([id, item]) => fragment.appendChild(this.createTile(id, item)));
         this.el.grid.replaceChildren(fragment);
       }
 
@@ -514,12 +1308,63 @@
         e.target.value = ""; // permite volver a elegir el mismo archivo
         if (!file) return;
 
-        this.pendingImage = await LeoTalk.resizeImage(file, MAX_IMAGE_SIZE);
-        if (this.el.preview.src) URL.revokeObjectURL(this.el.preview.src);
-        this.el.preview.src = URL.createObjectURL(this.pendingImage);
-        this.el.wordInput.value = "";
-        this.el.wordModal.showModal();
-        this.el.wordInput.focus();
+        this.openWordModal(await LeoTalk.resizeImage(file, MAX_IMAGE_SIZE));
+      }
+
+      // Intenta descargar la imagen del link para guardarla en la tablet (funciona sin internet).
+      // Si el sitio no lo permite (CORS), se guarda el link y la imagen se carga desde ahí.
+      async handleUrl() {
+        const { urlInput, urlError, urlNext, urlModal } = this.el;
+        const url = urlInput.value.trim();
+        urlError.textContent = "";
+
+        if (!/^https?:\/\//i.test(url)) {
+          urlError.textContent = "Pegá un link que empiece con http:// o https://";
+          urlInput.focus();
+          return;
+        }
+
+        urlNext.disabled = true;
+        urlNext.textContent = "Cargando…";
+        try {
+          let image;
+          try {
+            const response = await fetch(url);
+            const blob = await response.blob();
+            if (!response.ok || !blob.type.startsWith("image/")) throw new Error("No es una imagen");
+            image = await LeoTalk.resizeImage(blob, MAX_IMAGE_SIZE);
+          } catch {
+            await LeoTalk.checkImageUrl(url);
+            image = url;
+          }
+          urlModal.close();
+          this.openWordModal(image);
+        } catch {
+          urlError.textContent = "No se pudo cargar una imagen desde ese link.";
+        } finally {
+          urlNext.disabled = false;
+          urlNext.textContent = "Siguiente";
+        }
+      }
+
+      openWordModal(image) {
+        const { preview, wordInput, wordModal } = this.el;
+        this.pendingImage = image;
+        if (preview.src.startsWith("blob:")) URL.revokeObjectURL(preview.src);
+        preview.src = image instanceof Blob ? URL.createObjectURL(image) : image;
+        wordInput.value = "";
+        wordModal.showModal();
+        wordInput.focus();
+      }
+
+      // Verifica que el link cargue como imagen (sin CORS no se puede leer, pero sí mostrar)
+      static checkImageUrl(url) {
+        return new Promise((resolve, reject) => {
+          const img = new Image();
+          img.onload = resolve;
+          img.onerror = reject;
+          img.src = url;
+        });
       }
 
       saveWord() {
@@ -529,10 +1374,11 @@
           return;
         }
         const id = `img-${Date.now()}`;
-        const item = { image: this.pendingImage, value };
+        const item = { image: this.pendingImage, value, weight: 0, createDate: LeoTalk.localISO() };
         this.images.set(id, item);
-        this.store.put({ id, image: item.image, value })
+        this.store.put(LeoTalk.toRecord(id, item))
           .catch((err) => console.error("No se pudo guardar la imagen", err));
+        this.scheduleSnapshot();
         this.pendingImage = null;
         this.el.wordModal.close();
         // Agrega solo la casilla nueva en vez de redibujar toda la grilla
