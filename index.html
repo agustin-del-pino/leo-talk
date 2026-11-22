@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leo Talk</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#121212">
+  <link rel="icon" href="icons/icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: #121212;
+      color: #eee;
+      min-height: 100vh;
+      padding: 16px 16px 100px;
+      /* espacio abajo para que el toast no tape la grilla */
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+    }
+
+    .add-btn {
+      width: 36px;
+      height: 36px;
+      border: none;
+      border-radius: 50%;
+      background: #2a2a2a;
+      color: #eee;
+      font-size: 1.5rem;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .add-btn:hover {
+      background: #3a3a3a;
+    }
+
+    .modal {
+      margin: auto;
+      border: none;
+      border-radius: 12px;
+      background: #1e1e1e;
+      color: #eee;
+      padding: 20px;
+      min-width: 260px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
+    }
+
+    .modal::backdrop {
+      background: rgba(0, 0, 0, 0.6);
+    }
+
+    .modal h2 {
+      font-size: 1.1rem;
+      margin-bottom: 16px;
+    }
+
+    .modal-options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .modal-options button {
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      background: #2f2f2f;
+      color: #eee;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    .modal-options button:hover {
+      background: #3d3d3d;
+    }
+
+    .modal-options .cancel {
+      background: transparent;
+      color: #aaa;
+    }
+
+    .modal-options .primary {
+      background: #3b6fd8;
+    }
+
+    .modal-options .primary:hover {
+      background: #4a7ee6;
+    }
+
+    .preview {
+      display: block;
+      width: 100%;
+      max-width: 280px;
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+      border-radius: 8px;
+      margin: 0 auto 12px;
+      background: #2a2a2a;
+    }
+
+    .word-input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #444;
+      border-radius: 8px;
+      background: #121212;
+      color: #eee;
+      font-size: 1rem;
+      margin-bottom: 12px;
+    }
+
+    .hidden-input {
+      display: none;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      transform: translate(-50%, 20px);
+      max-width: calc(100% - 32px);
+      padding: 14px 24px;
+      border-radius: 12px;
+      background: #2a2a2a;
+      color: #fff;
+      font-size: 1.4rem;
+      font-weight: 600;
+      text-align: center;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    .toast.visible {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    .countdown {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: #3b6fd8;
+      color: #fff;
+      font-size: 1.6rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .countdown.visible {
+      opacity: 1;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 12px;
+    }
+
+    .tile {
+      position: relative;
+      overflow: hidden;
+      aspect-ratio: 1 / 1;
+      border: none;
+      border-radius: 12px;
+      background-size: cover;
+      background-position: center;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
+    }
+
+    .tile:hover {
+      transform: scale(1.03);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.7);
+    }
+
+    .tile:active {
+      transform: scale(0.97);
+    }
+
+    .tile-label {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      padding: 6px 4px;
+      background: rgba(0, 0, 0, 0.55);
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .tile:focus-visible {
+      outline: 3px solid #fff;
+      outline-offset: 2px;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>Leo Talk</h1>
+    <button id="add-btn" class="add-btn" aria-label="Agregar">+</button>
+  </header>
+
+  <main id="grid" class="grid"></main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <div id="countdown" class="countdown" aria-hidden="true"></div>
+
+  <dialog id="add-modal" class="modal">
+    <h2>Nueva imagen</h2>
+    <div class="modal-options">
+      <button id="opt-add">Agregar</button>
+      <button id="opt-camera">Cámara</button>
+      <button id="opt-cancel" class="cancel">Cancelar</button>
+    </div>
+  </dialog>
+
+  <dialog id="word-modal" class="modal">
+    <h2>¿Qué significa esta imagen?</h2>
+    <img id="preview" class="preview" alt="Vista previa">
+    <input id="word-input" class="word-input" type="text" placeholder="Ej: agua, quiero, mamá" autocomplete="off">
+    <div class="modal-options">
+      <button id="word-save" class="primary">Guardar</button>
+      <button id="word-cancel" class="cancel">Cancelar</button>
+    </div>
+  </dialog>
+
+  <!-- Inputs ocultos: en tablet, "capture" abre directo la cámara -->
+  <input id="file-gallery" class="hidden-input" type="file" accept="image/*">
+  <input id="file-camera" class="hidden-input" type="file" accept="image/*" capture="environment">
+
+  <script>
+    // Mapa imagen -> valor. "image" es un color (placeholder) o un data URL de una imagen real.
+    const TILE_COUNT = 12;
+    const MAX_IMAGE_SIZE = 512; // px, lado mayor; achica las fotos de la cámara
+
+    function randomColor() {
+      const hue = Math.floor(Math.random() * 360);
+      return `hsl(${hue}, 70%, 60%)`;
+    }
+
+    // Guarda en IndexedDB las imágenes agregadas por el usuario ({ id, image: Blob, value })
+    class ImageStore {
+      static DB_NAME = "leo-talk";
+      static STORE = "images";
+
+      constructor() {
+        this.db = new Promise((resolve, reject) => {
+          const req = indexedDB.open(ImageStore.DB_NAME, 1);
+          req.onupgradeneeded = () => req.result.createObjectStore(ImageStore.STORE, { keyPath: "id" });
+          req.onsuccess = () => resolve(req.result);
+          req.onerror = () => reject(req.error);
+        });
+      }
+
+      async request(mode, fn) {
+        const db = await this.db;
+        return new Promise((resolve, reject) => {
+          const req = fn(db.transaction(ImageStore.STORE, mode).objectStore(ImageStore.STORE));
+          req.onsuccess = () => resolve(req.result);
+          req.onerror = () => reject(req.error);
+        });
+      }
+
+      getAll() {
+        return this.request("readonly", (store) => store.getAll());
+      }
+
+      put(record) {
+        return this.request("readwrite", (store) => store.put(record));
+      }
+    }
+
+    class LeoTalk {
+      constructor() {
+        this.speakDelay = 3000;
+        this.sentence = [];
+        this.speakTimer = null;
+        this.countdownTimer = null;
+        this.speakDeadline = 0;
+        this.pendingImage = null;
+
+        this.el = {
+          grid: document.getElementById("grid"),
+          toast: document.getElementById("toast"),
+          countdown: document.getElementById("countdown"),
+          addModal: document.getElementById("add-modal"),
+          wordModal: document.getElementById("word-modal"),
+          preview: document.getElementById("preview"),
+          wordInput: document.getElementById("word-input"),
+          fileGallery: document.getElementById("file-gallery"),
+          fileCamera: document.getElementById("file-camera"),
+        };
+
+        // Un solo utterance reutilizado para todas las oraciones
+        this.utterance = new SpeechSynthesisUtterance();
+        this.utterance.lang = "es-AR";
+        // El toast queda visible mientras se lee; si se empezó otra oración, no se oculta
+        this.utterance.onend = this.utterance.onerror = () => {
+          if (this.sentence.length === 0) this.hideToast();
+        };
+
+        // Las voces cargan de forma asíncrona: en el constructor getVoices() suele venir vacío
+        this.selectVoice();
+        speechSynthesis.addEventListener("voiceschanged", () => this.selectVoice());
+
+        this.images = new Map();
+        this.store = new ImageStore();
+        this.loadImages();
+        this.loadSavedImages();
+        this.bindEvents();
+
+        // Pide que el navegador no borre los datos guardados si se queda sin espacio
+        navigator.storage?.persist?.();
+      }
+
+      loadImages() {
+        for (let i = 1; i <= TILE_COUNT; i++) {
+          this.images.set(`img-${i}`, { image: randomColor(), value: `palabra${i}` });
+        }
+      }
+
+      async loadSavedImages() {
+        try {
+          const saved = await this.store.getAll();
+          saved.forEach(({ id, image, value }) => this.images.set(id, { image, value }));
+          if (saved.length) this.render();
+        } catch (err) {
+          console.error("No se pudieron cargar las imágenes guardadas", err);
+        }
+      }
+
+      // Prioriza voces locales: las online (ej. "Google español") van a un servidor y demoran
+      selectVoice() {
+        const voices = speechSynthesis.getVoices().filter((v) => v.lang.startsWith("es"));
+        const score = (v) => (v.localService ? 2 : 0) + (v.lang === "es-AR" ? 1 : 0);
+        const best = voices.sort((a, b) => score(b) - score(a))[0];
+        if (best) this.utterance.voice = best;
+      }
+
+      bindEvents() {
+        const { grid, addModal, wordModal, wordInput, fileGallery, fileCamera } = this.el;
+
+        grid.addEventListener("click", (e) => {
+          const tile = e.target.closest(".tile");
+          if (tile) this.selectTile(tile.dataset.id);
+        });
+
+        // Primer toque: "despierta" el motor de voz con una frase muda.
+        // Evita la demora de la primera oración y en iPad habilita hablar desde un temporizador.
+        document.addEventListener("pointerdown", () => {
+          const warmup = new SpeechSynthesisUtterance(" ");
+          warmup.volume = 0;
+          speechSynthesis.speak(warmup);
+        }, { once: true });
+
+        document.getElementById("add-btn").addEventListener("click", () => addModal.showModal());
+
+        document.getElementById("opt-add").addEventListener("click", () => {
+          addModal.close();
+          fileGallery.click();
+        });
+
+        document.getElementById("opt-camera").addEventListener("click", () => {
+          addModal.close();
+          fileCamera.click();
+        });
+
+        document.getElementById("opt-cancel").addEventListener("click", () => addModal.close());
+
+        fileGallery.addEventListener("change", (e) => this.handleFile(e));
+        fileCamera.addEventListener("change", (e) => this.handleFile(e));
+
+        document.getElementById("word-save").addEventListener("click", () => this.saveWord());
+        wordInput.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") this.saveWord();
+        });
+
+        document.getElementById("word-cancel").addEventListener("click", () => {
+          this.pendingImage = null;
+          wordModal.close();
+        });
+
+        // Cerrar al hacer click fuera del modal
+        [addModal, wordModal].forEach((modal) => {
+          modal.addEventListener("click", (e) => {
+            if (e.target === modal) modal.close();
+          });
+        });
+      }
+
+      // --- Oración ---
+
+      selectTile(id) {
+        this.sentence.push(this.images.get(id).value);
+        this.showToast(this.sentence.join(" "));
+
+        clearTimeout(this.speakTimer);
+        this.speakTimer = setTimeout(() => this.speakSentence(), this.speakDelay);
+        this.startCountdown();
+      }
+
+      speakSentence() {
+        this.stopCountdown();
+        const text = this.sentence.join(" ");
+        this.sentence = [];
+        if (!text) return;
+
+        this.utterance.text = text;
+        // cancel() seguido de speak() puede meter una pausa en Chrome: solo si hay algo sonando
+        if (speechSynthesis.speaking || speechSynthesis.pending) speechSynthesis.cancel();
+        speechSynthesis.speak(this.utterance);
+      }
+
+      // --- Toast y contador ---
+
+      showToast(text) {
+        this.el.toast.textContent = text;
+        this.el.toast.classList.add("visible");
+      }
+
+      hideToast() {
+        this.el.toast.classList.remove("visible");
+      }
+
+      startCountdown() {
+        this.speakDeadline = Date.now() + this.speakDelay;
+        clearInterval(this.countdownTimer);
+        this.updateCountdown();
+        this.countdownTimer = setInterval(() => this.updateCountdown(), 200);
+        this.el.countdown.classList.add("visible");
+      }
+
+      updateCountdown() {
+        const remaining = String(Math.max(0, Math.ceil((this.speakDeadline - Date.now()) / 1000)));
+        // Solo toca el DOM cuando cambia el número
+        if (this.el.countdown.textContent !== remaining) this.el.countdown.textContent = remaining;
+      }
+
+      stopCountdown() {
+        clearInterval(this.countdownTimer);
+        this.el.countdown.classList.remove("visible");
+      }
+
+      // --- Grilla ---
+
+      createTile(id, item) {
+        const tile = document.createElement("button");
+        tile.className = "tile";
+        tile.dataset.id = id;
+        if (item.image instanceof Blob) {
+          // Se crea una sola vez por imagen y se reutiliza en cada render
+          item.url ??= URL.createObjectURL(item.image);
+          tile.style.backgroundImage = `url(${item.url})`;
+        } else {
+          tile.style.backgroundColor = item.image;
+        }
+        tile.setAttribute("aria-label", item.value);
+
+        const label = document.createElement("span");
+        label.className = "tile-label";
+        label.textContent = item.value;
+        tile.appendChild(label);
+
+        return tile;
+      }
+
+      render() {
+        // Se arma fuera del DOM y se inserta de una sola vez
+        const fragment = document.createDocumentFragment();
+        this.images.forEach((item, id) => fragment.appendChild(this.createTile(id, item)));
+        this.el.grid.replaceChildren(fragment);
+      }
+
+      // --- Alta de imágenes ---
+
+      // Lee la imagen elegida, la achica y abre el paso para cargar la palabra
+      async handleFile(e) {
+        const file = e.target.files[0];
+        e.target.value = ""; // permite volver a elegir el mismo archivo
+        if (!file) return;
+
+        this.pendingImage = await LeoTalk.resizeImage(file, MAX_IMAGE_SIZE);
+        if (this.el.preview.src) URL.revokeObjectURL(this.el.preview.src);
+        this.el.preview.src = URL.createObjectURL(this.pendingImage);
+        this.el.wordInput.value = "";
+        this.el.wordModal.showModal();
+        this.el.wordInput.focus();
+      }
+
+      saveWord() {
+        const value = this.el.wordInput.value.trim();
+        if (!value) {
+          this.el.wordInput.focus();
+          return;
+        }
+        const id = `img-${Date.now()}`;
+        const item = { image: this.pendingImage, value };
+        this.images.set(id, item);
+        this.store.put({ id, image: item.image, value })
+          .catch((err) => console.error("No se pudo guardar la imagen", err));
+        this.pendingImage = null;
+        this.el.wordModal.close();
+        // Agrega solo la casilla nueva en vez de redibujar toda la grilla
+        this.el.grid.appendChild(this.createTile(id, item));
+      }
+
+      static resizeImage(file, maxSize) {
+        return new Promise((resolve, reject) => {
+          const url = URL.createObjectURL(file);
+          const img = new Image();
+          img.onload = () => {
+            const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
+            const canvas = document.createElement("canvas");
+            canvas.width = Math.round(img.width * scale);
+            canvas.height = Math.round(img.height * scale);
+            canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+            URL.revokeObjectURL(url);
+            // Blob en vez de data URL: ocupa ~33% menos y se guarda tal cual en IndexedDB
+            canvas.toBlob((blob) => {
+              blob ? resolve(blob) : reject(new Error("No se pudo procesar la imagen"));
+            }, "image/jpeg", 0.85);
+          };
+          img.onerror = () => {
+            URL.revokeObjectURL(url);
+            reject(new Error("No se pudo leer la imagen"));
+          };
+          img.src = url;
+        });
+      }
+    }
+
+    const app = new LeoTalk();
+    app.render();
+
+    // Service worker: permite instalar la app y usarla sin internet (requiere https o localhost)
+    if ("serviceWorker" in navigator && location.protocol !== "file:") {
+      navigator.serviceWorker.register("sw.js");
+    }
+  </script>
+</body>
+
+</html>
